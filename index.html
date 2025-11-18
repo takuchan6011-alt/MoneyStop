@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>感情ログで良い買い物を見える化</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0ea5e9">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo">🧭</span>
+      <div class="titles">
+        <h1>感情ログで“良い買い物”を育てる</h1>
+        <p class="subtitle">買う前・後の感情を記録して、自分の味方になるお金の使い方へ</p>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="tab-btn active" data-target="new-entry">記録</button>
+      <button class="tab-btn" data-target="follow-up">フォローアップ</button>
+      <button class="tab-btn" data-target="history">履歴</button>
+      <button class="tab-btn" data-target="insights">可視化</button>
+    </nav>
+
+    <div class="header-actions">
+      <label class="switch" title="キッズモード">
+        <input type="checkbox" id="kidModeToggle">
+        <span class="slider"></span>
+      </label>
+      <span class="switch-label">キッズモード</span>
+    </div>
+  </header>
+
+  <div id="reminderBar" class="reminder-bar hidden"></div>
+
+  <main>
+    <!-- New Entry -->
+    <section id="section-new-entry" class="section active">
+      <form id="preForm" class="card">
+        <h2>1. 欲しいと思ったら 30秒で記録</h2>
+
+        <div class="grid two">
+          <div class="form-group">
+            <label>写真（任意）</label>
+            <div class="photo-input">
+              <input type="file" id="photoInput" accept="image/*" />
+              <img id="photoPreview" alt="プレビュー" class="hidden" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>名前</label>
+            <input id="nameInput" type="text" placeholder="例: ワイヤレスイヤホン" required />
+            <label>金額</label>
+            <input id="priceInput" type="number" min="0" step="100" placeholder="例: 12000" required />
+            <label>カテゴリ</label>
+            <select id="categoryInput">
+              <option value="食">食</option>
+              <option value="ガジェット">ガジェット</option>
+              <option value="本">本</option>
+              <option value="服">服</option>
+              <option value="遊び">遊び</option>
+              <option value="学び">学び</option>
+              <option value="生活">生活</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>買う前の感情</label>
+          <div class="sliders">
+            <div class="slider-row" data-kid-label="ワクワク">
+              <span id="labelExcitement">ワクワク度</span>
+              <input id="excitementInput" type="range" min="0" max="10" value="5" />
+              <output id="excitementOut">5</output>
+            </div>
+            <div class="slider-row" data-kid-label="モヤモヤ">
+              <span id="labelGuilt">不安・罪悪感度</span>
+              <input id="guiltInput" type="range" min="0" max="10" value="3" />
+              <output id="guiltOut">3</output>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>感情タグ（タップ）</label>
+          <div id="preTags" class="chips" data-kid="true">
+            <button type="button" class="chip" data-value="ごほうびにしたい">ごほうびにしたい 🎁</button>
+            <button type="button" class="chip" data-value="ストレス発散">ストレス発散 💨</button>
+            <button type="button" class="chip" data-value="必要だから">必要だから ✅</button>
+            <button type="button" class="chip" data-value="なんとなく">なんとなく 🤔</button>
+            <button type="button" class="chip" data-value="みんな持ってるから">みんな持ってるから 👀</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>一言メモ（任意）</label>
+          <textarea id="preMemo" rows="2" placeholder="例：ここ数日頑張ったから / ちょっとイライラしてる"></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="saveBuyNow" class="btn primary" type="submit">今すぐ買うとして記録</button>
+          <button id="saveWait" class="btn" type="button">一晩おく</button>
+        </div>
+      </form>
+
+      <div class="helper card">
+        <h3>ヒント</h3>
+        <p>「一晩おく」を押すと、10秒呼吸ガイドとリマインドを設定します。</p>
+      </div>
+    </section>
+
+    <!-- Follow Up -->
+    <section id="section-follow-up" class="section">
+      <div class="card">
+        <h2>3. 結果どうなった？</h2>
+        <div id="followList" class="follow-list"></div>
+      </div>
+
+      <div id="followDetail" class="card hidden">
+        <h3 id="followTitle">フォローアップ</h3>
+        <div class="actions">
+          <button class="btn primary" id="btnBought">買った</button>
+          <button class="btn" id="btnNotBought">やめた / まだ保留</button>
+        </div>
+
+        <div id="boughtForm" class="subform hidden">
+          <div class="sliders">
+            <div class="slider-row">
+              <span>満足度</span>
+              <input id="satisfactionInput" type="range" min="0" max="10" value="7" />
+              <output id="satisfactionOut">7</output>
+            </div>
+            <div class="slider-row">
+              <span>後悔度</span>
+              <input id="regretInput" type="range" min="0" max="10" value="2" />
+              <output id="regretOut">2</output>
+            </div>
+          </div>
+          <label>タグ</label>
+          <div id="postTagsBought" class="chips">
+            <button type="button" class="chip" data-value="すごく役に立ってる">すごく役に立ってる 💪</button>
+            <button type="button" class="chip" data-value="思ったより使ってない">思ったより使ってない 💤</button>
+            <button type="button" class="chip" data-value="買ってよかった">買ってよかった〜！ 😄</button>
+            <button type="button" class="chip" data-value="なくてもよかった">なくてもよかったかも 🤷‍♂️</button>
+            <button type="button" class="chip" data-value="ストレス発散だった">ただのストレス発散だった 😵‍💫</button>
+          </div>
+          <label>一言メモ</label>
+          <textarea id="postMemoBought" rows="2" placeholder="例：〇〇の作業がめっちゃ楽になった"></textarea>
+          <div class="actions"><button id="saveBought" class="btn primary">保存</button></div>
+        </div>
+
+        <div id="notBoughtForm" class="subform hidden">
+          <div class="sliders">
+            <div class="slider-row">
+              <span>スッキリ度</span>
+              <input id="reliefInput" type="range" min="0" max="10" value="6" />
+              <output id="reliefOut">6</output>
+            </div>
+            <div class="slider-row">
+              <span>未練度</span>
+              <input id="longingInput" type="range" min="0" max="10" value="3" />
+              <output id="longingOut">3</output>
+            </div>
+          </div>
+          <label>タグ</label>
+          <div id="postTagsNotBought" class="chips">
+            <button type="button" class="chip" data-value="やめて正解">やめて正解だった ✨</button>
+            <button type="button" class="chip" data-value="まだ気になる">まだちょっと気になる 👀</button>
+            <button type="button" class="chip" data-value="代わりを買った">代わりのものを買った 🔁</button>
+            <button type="button" class="chip" data-value="使う場面なし">使う場面を想像したらいらなかった 🧠</button>
+          </div>
+          <label>一言メモ</label>
+          <textarea id="postMemoNotBought" rows="2" placeholder="例：必要な場面がなかった"></textarea>
+          <div class="actions"><button id="saveNotBought" class="btn primary">保存</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section id="section-history" class="section">
+      <div class="card">
+        <h2>履歴</h2>
+        <div class="toolbar">
+          <select id="filterCategory">
+            <option value="">すべてのカテゴリ</option>
+            <option value="食">食</option>
+            <option value="ガジェット">ガジェット</option>
+            <option value="本">本</option>
+            <option value="服">服</option>
+            <option value="遊び">遊び</option>
+            <option value="学び">学び</option>
+            <option value="生活">生活</option>
+            <option value="その他">その他</option>
+          </select>
+          <select id="sortOrder">
+            <option value="new">新しい順</option>
+            <option value="old">古い順</option>
+            <option value="price_desc">金額高い順</option>
+            <option value="price_asc">金額低い順</option>
+          </select>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </div>
+    </section>
+
+    <!-- Insights -->
+    <section id="section-insights" class="section">
+      <div class="card">
+        <h2>可視化：金額 × 満足/スッキリ</h2>
+        <div class="toolbar">
+          <label>
+            Y軸：
+            <select id="yMetric">
+              <option value="auto">自動（買った=満足, やめた=スッキリ）</option>
+              <option value="satisfaction">満足度（買った）</option>
+              <option value="relief">スッキリ度（やめた）</option>
+            </select>
+          </label>
+        </div>
+        <canvas id="scatterCanvas" width="900" height="420"></canvas>
+        <div id="legend" class="legend"></div>
+        <p class="note">点の色＝カテゴリ。<br>自分にとって“神コスパ”が見えてきます。</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cooldown Overlay -->
+  <div id="cooldownOverlay" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="overlay-content">
+      <h3>10秒呼吸ガイド</h3>
+      <div class="breath">
+        <div class="circle"></div>
+        <div class="timer" id="cooldownTimer">10</div>
+      </div>
+      <p class="question">これは「今の感情」を買う？それとも「長く続くうれしさ」を買う？</p>
+      <button id="closeCooldown" class="btn">閉じる</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <small>データはこの端末のローカルに保存されます（匿名・オフライン）</small>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    if ('Notification' in window && Notification.permission === 'default') {
+      document.addEventListener('click', () => {
+        if (Notification.permission === 'default') Notification.requestPermission();
+      }, { once: true });
+    }
+  </script>
+</body>
+</html>
+
